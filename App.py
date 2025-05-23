@@ -6,11 +6,26 @@ from expense import Expense
 import pandas as pd
 
 CSV_FILE = "expenses.csv"
+BUDGET_FILE = "budget.txt"
 DEFAULT_BUDGET = 2000.0  # Use float for consistency
 
-# Initialize session state for budget as float
+def load_budget():
+    if os.path.isfile(BUDGET_FILE):
+        with open(BUDGET_FILE, "r") as f:
+            try:
+                return float(f.read())
+            except:
+                return DEFAULT_BUDGET
+    else:
+        return DEFAULT_BUDGET
+
+def save_budget(budget):
+    with open(BUDGET_FILE, "w") as f:
+        f.write(str(budget))
+
+# Initialize budget from persistent storage
 if "budget" not in st.session_state:
-    st.session_state["budget"] = float(DEFAULT_BUDGET)
+    st.session_state["budget"] = load_budget()
 
 st.title("💸 Expense Tracker")
 
@@ -24,6 +39,7 @@ new_budget = st.sidebar.number_input(
 )
 if new_budget != st.session_state["budget"]:
     st.session_state["budget"] = new_budget
+    save_budget(new_budget)
     st.sidebar.success(f"Budget set to ${new_budget:.2f}")
 
 # Ensure CSV exists
@@ -53,7 +69,13 @@ def add_expense(name, category, amount):
     balance = st.session_state["budget"] - new_total_spent
     with open(CSV_FILE, "a", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow([datetime.now().strftime("%Y-%m-%d"), name, category, "{:.2f}".format(amount), "{:.2f}".format(balance)])
+        writer.writerow([
+            datetime.now().strftime("%Y-%m-%d"),
+            name,
+            category,
+            "{:.2f}".format(amount),
+            "{:.2f}".format(balance)
+        ])
 
 # Add Expense Form
 with st.form("Add Expense"):
@@ -108,4 +130,4 @@ else:
     st.info("No expenses yet. Add your first expense!")
 
 st.sidebar.markdown("---")
-st.sidebar.write("Expense Tracker by [Your Name]")
+st.sidebar.write("Expense Tracker by [NITHIN KUMAR]")
